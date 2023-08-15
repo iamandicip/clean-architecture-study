@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -20,7 +21,6 @@ public class RabbitMqEventPublisher {
 
     private final OutboxJpaRepository repository;
     private final RabbitMqConfiguration config;
-
     private final Connection connection;
 
     public RabbitMqEventPublisher(OutboxJpaRepository repository, RabbitMqConfiguration config)
@@ -69,7 +69,11 @@ public class RabbitMqEventPublisher {
         String exchangeName = config.getExchangeName();
         String routingKey = config.getRoutingKey();
         byte[] messageBodyBytes = event.getEventData().getBytes();
-        AMQP.BasicProperties messageProperties = new AMQP.BasicProperties();
+        AMQP.BasicProperties messageProperties = new AMQP.BasicProperties().builder()
+                .contentType("application/json")
+                .timestamp(new Date())
+                .type(event.getEventType().name())
+                .build();
         channel.basicPublish(exchangeName, routingKey, messageProperties, messageBodyBytes);
     }
 }

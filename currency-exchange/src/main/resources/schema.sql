@@ -9,7 +9,7 @@ create table if not exists outbox (
     ID serial primary key,
     EVENT_TYPE varchar(10) not null,
     CREATED_AT timestamp not null,
-    EVENT_DATA varchar(4000) not null
+    EVENT_DATA text not null
 );
 
 CREATE SEQUENCE exchange_rates_seq;

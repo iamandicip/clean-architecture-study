@@ -22,6 +22,7 @@ public class OutboxJpaEntity {
 
     private Date createdAt;
 
+    @Lob
     private String eventData;
 
     @Enumerated(EnumType.ORDINAL)

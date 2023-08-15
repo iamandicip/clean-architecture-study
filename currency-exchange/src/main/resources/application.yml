@@ -4,6 +4,8 @@ spring:
     driverClassName: org.postgresql.Driver
     username: currency-exchange
     password: pwd
+    hikari:
+      auto-commit: false
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
