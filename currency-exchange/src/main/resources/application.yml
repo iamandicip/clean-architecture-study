@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driverClassName: org.postgresql.Driver
+    username: currency-exchange
+    password: pwd
+    hikari:
+      auto-commit: false
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+    show-sql: true
+    hibernate:
+      ddl-auto: drop
+  sql:
+    init:
+      mode: always
+
+rabbitmq:
+  host: localhost
+  port: 5672
+  user: rabbitmq
+  password: pwd
+  exchangeName: currency-exchange
+  queueName: exchange-rates
+  routingKey: currency-exchange-routing-key
+
+logging:
+  level:
+    eu.europa.eeas: DEBUG
