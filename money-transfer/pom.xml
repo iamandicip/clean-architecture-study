@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>eu.europa.eeas</groupId>
-	<artifactId>moneytransfer</artifactId>
+	<artifactId>money-transfer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>moneytransfer</name>
+	<name>money-transfer</name>
 	<description>Clean architecture example</description>
 	<properties>
 		<java.version>17</java.version>

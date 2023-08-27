@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface OutboxJpaRepository extends JpaRepository<OutboxJpaEntity, Long> {
-
     @Query("select event from OutboxJpaEntity event order by createdAt")
     List<OutboxJpaEntity> findAllOrderByCreatedAt();
 }

@@ -3,12 +3,14 @@ package eu.europa.eeas.currencyexchange.adapters.out.persistence.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.CurrencyExchangeJpaEntity;
-import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.EventType;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.OutboxJpaEntity;
 import eu.europa.eeas.currencyexchange.application.domain.model.CurrencyExchange;
 import eu.europa.eeas.currencyexchange.application.domain.usecase.NoExchangeRateForPairException;
+import eu.europa.eeas.currencyexchange.application.ports.out.NewExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.PersistExchangeRatePort;
+import eu.europa.eeas.currencyexchange.application.ports.out.RemoveExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.RetrieveExchangeRatePort;
+import eu.europa.eeas.currencyexchange.common.ApplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +19,11 @@ import java.util.Date;
 import java.util.Optional;
 
 @Component
-public class ExchangeRatePersistenceAdapter implements RetrieveExchangeRatePort, PersistExchangeRatePort {
+public class ExchangeRatePersistenceAdapter implements
+        RetrieveExchangeRatePort,
+        PersistExchangeRatePort,
+        NewExchangeRatePort,
+        RemoveExchangeRatePort {
 
     private final CurrencyExchangeJpaRepository repository;
     private final OutboxJpaRepository outboxRepository;
@@ -32,17 +38,13 @@ public class ExchangeRatePersistenceAdapter implements RetrieveExchangeRatePort,
     }
 
     @Override
-    public void updateExchangeRate(CurrencyExchange currencyExchange) {
-        CurrencyExchangeJpaEntity entity = findCurrencyExchangeJpaEntity(
-                currencyExchange.getSource(), currencyExchange.getTarget());
+    public void createExchangeRate(CurrencyExchange currencyExchange) {
+        CurrencyExchangeJpaEntity entity = new CurrencyExchangeJpaEntity();
+        entity.setCodeFrom(currencyExchange.getSource().getCurrencyCode());
+        entity.setCodeTo(currencyExchange.getTarget().getCurrencyCode());
         entity.setRate(currencyExchange.getRate());
         repository.save(entity);
-        persistEventToOutbox(entity, EventType.UPDATE);
-    }
-
-    private CurrencyExchangeJpaEntity findCurrencyExchangeJpaEntity(Currency from, Currency to) {
-        return repository.findByCodeFromAndCodeTo(from.getCurrencyCode(), to.getCurrencyCode())
-                .orElseThrow(() -> new NoExchangeRateForPairException(from, to));
+        persistEventToOutbox(entity, OutboxJpaEntity.EventType.CREATE);
     }
 
     @Override
@@ -52,17 +54,49 @@ public class ExchangeRatePersistenceAdapter implements RetrieveExchangeRatePort,
         return Optional.of(model);
     }
 
-    private void persistEventToOutbox(CurrencyExchangeJpaEntity entity, EventType eventType) {
-        String json = null;
+    @Override
+    public void updateExchangeRate(CurrencyExchange currencyExchange) {
+        CurrencyExchangeJpaEntity entity = findCurrencyExchangeJpaEntity(
+                currencyExchange.getSource(), currencyExchange.getTarget());
+        entity.setRate(currencyExchange.getRate());
+        entity = repository.save(entity);
+        persistEventToOutbox(entity, OutboxJpaEntity.EventType.UPDATE);
+    }
+
+    @Override
+    public void deleteExchangeRate(Currency source, Currency target) {
+        CurrencyExchangeJpaEntity entity = findCurrencyExchangeJpaEntity(source, target);
+        repository.delete(entity);
+        persistEventToOutbox(entity, OutboxJpaEntity.EventType.DELETE);
+    }
+
+    @Override
+    public boolean checkExchangeRateDoesNotExist(CurrencyExchange currencyExchange) {
+        return repository.findByCodeFromAndCodeTo(
+                        currencyExchange.getSource().getCurrencyCode(), currencyExchange.getTarget().getCurrencyCode())
+                .isEmpty();
+    }
+
+    private CurrencyExchangeJpaEntity findCurrencyExchangeJpaEntity(Currency from, Currency to) {
+        // throwing the exception here is not a business validation, it is an input validation
+        // that is why it doesn't belong in the domain
+        return repository.findByCodeFromAndCodeTo(from.getCurrencyCode(), to.getCurrencyCode())
+                .orElseThrow(() -> new NoExchangeRateForPairException(from, to));
+    }
+
+    private void persistEventToOutbox(CurrencyExchangeJpaEntity entity, OutboxJpaEntity.EventType eventType) {
         try {
-            json = objectMapper.writeValueAsString(entity);
+            CurrencyExchange model = CurrencyExchangeConverter.entityToModel(entity);
+            String json = objectMapper.writeValueAsString(model);
+            OutboxJpaEntity event = new OutboxJpaEntity();
+            event.setEventType(eventType);
+            event.setAggregateId(entity.getId());
+            event.setAggregateType("CurrencyExchange");
+            event.setPayload(json);
+            event.setCreatedAt(new Date());
+            outboxRepository.save(event);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new ApplicationException("There was an unexpected error processing the changes", e);
         }
-        OutboxJpaEntity event = new OutboxJpaEntity();
-        event.setEventType(eventType);
-        event.setEventData(json);
-        event.setCreatedAt(new Date());
-        outboxRepository.save(event);
     }
 }

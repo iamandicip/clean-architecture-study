@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @RestController
 public class GetExchangeRateController {
-
     private final GetExchangeRatePort getExchangeRatePort;
 
     @Autowired
