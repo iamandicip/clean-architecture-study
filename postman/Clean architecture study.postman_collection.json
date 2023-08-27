@@ -12,16 +12,16 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "localhost:8081/exchange-rate/EUR/USD/1.13",
+					"raw": "localhost:8081/exchange-rate/RON/EUR/4.92",
 					"host": [
 						"localhost"
 					],
 					"port": "8081",
 					"path": [
 						"exchange-rate",
+						"RON",
 						"EUR",
-						"USD",
-						"1.13"
+						"4.92"
 					]
 				}
 			},
