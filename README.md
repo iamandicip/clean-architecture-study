@@ -9,7 +9,9 @@ This study has two main goals:
 
 ## Ports and Adapters architecture
 
-This type of architecture is also known as [Hexagonal Architecture](https://codesoapbox.dev/ports-adapters-aka-hexagonal-architecture-explained/)
+This type of architecture is also known as [Hexagonal Architecture](https://codesoapbox.dev/ports-adapters-aka-hexagonal-architecture-explained/).
+
+This study builds on top of this example [Hexagonal Architecture with Java and Spring](https://reflectoring.io/spring-hexagonal/).
 
 Given the fact that this is a very simple example, it is understandable to ask why make such a complicated architecture for some simple CRUD services.
 
