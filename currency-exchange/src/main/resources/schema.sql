@@ -14,5 +14,5 @@ create table if not exists outbox (
     CREATED_AT timestamp not null
 );
 
-CREATE SEQUENCE exchange_rates_seq;
-CREATE SEQUENCE outbox_seq;
+create sequence if not exists exchange_rates_seq;
+create sequence if not exists outbox_seq;

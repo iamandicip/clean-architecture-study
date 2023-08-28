@@ -1,6 +1,7 @@
 package eu.europa.eeas.currencyexchange.application.domain.usecase;
 
 import eu.europa.eeas.currencyexchange.application.domain.model.CurrencyExchange;
+import eu.europa.eeas.currencyexchange.application.domain.model.OperationResult;
 import eu.europa.eeas.currencyexchange.application.ports.out.PersistExchangeRatePort;
 import eu.europa.eeas.currencyexchange.common.UseCase;
 import jakarta.transaction.Transactional;
@@ -16,7 +17,7 @@ public class UpdateExchangeRateUseCase implements eu.europa.eeas.currencyexchang
     }
 
     @Override
-    public void updateExchangeRate(CurrencyExchange currencyExchange) {
-        persistExchangeRatePort.updateExchangeRate(currencyExchange);
+    public OperationResult updateExchangeRate(CurrencyExchange currencyExchange) {
+        return persistExchangeRatePort.updateExchangeRate(currencyExchange);
     }
 }

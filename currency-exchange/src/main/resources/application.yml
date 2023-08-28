@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/postgres
+    url: jdbc:postgresql://currency-exchange-db:5432/postgres
     driverClassName: org.postgresql.Driver
     username: currency-exchange
     password: pwd
@@ -11,7 +11,7 @@ spring:
     defer-datasource-initialization: true
     show-sql: true
     hibernate:
-      ddl-auto: drop
+      ddl-auto: none
   sql:
     init:
       mode: always

@@ -4,11 +4,11 @@ services:
   currency-exchange:
     image: currency-exchange
     depends_on: 
-      - db
+      - currency-exchange-db
     ports:
       - 8081:8080
   
-  db:
+  currency-exchange-db:
     image: postgres
     env_file:
       - .env

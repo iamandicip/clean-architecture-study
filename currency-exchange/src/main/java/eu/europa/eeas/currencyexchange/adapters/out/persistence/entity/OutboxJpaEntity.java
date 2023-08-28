@@ -14,10 +14,6 @@ import java.util.Date;
 @NoArgsConstructor
 public class OutboxJpaEntity {
 
-    public enum EventType {
-        CREATE, UPDATE, DELETE
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "outbox_seq")
     @SequenceGenerator(name = "outbox_seq", sequenceName = "outbox_seq", allocationSize = 1)

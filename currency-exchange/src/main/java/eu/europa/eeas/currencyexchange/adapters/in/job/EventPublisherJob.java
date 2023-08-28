@@ -1,8 +1,8 @@
 package eu.europa.eeas.currencyexchange.adapters.in.job;
 
-import eu.europa.eeas.currencyexchange.adapters.in.job.rabbitmq.RabbitMqPublisher;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.OutboxJpaEntity;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.repository.OutboxJpaRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,6 +24,7 @@ public class EventPublisherJob {
     }
 
     @Scheduled(fixedDelay = 1000 * 60)
+    @Transactional
     public void pollOutbox() {
         log.debug("Starting publishing scheduled job");
         try {

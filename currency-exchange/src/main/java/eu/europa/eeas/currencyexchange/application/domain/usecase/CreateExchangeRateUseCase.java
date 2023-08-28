@@ -1,6 +1,7 @@
 package eu.europa.eeas.currencyexchange.application.domain.usecase;
 
 import eu.europa.eeas.currencyexchange.application.domain.model.CurrencyExchange;
+import eu.europa.eeas.currencyexchange.application.domain.model.OperationResult;
 import eu.europa.eeas.currencyexchange.application.ports.in.CreateExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.NewExchangeRatePort;
 import eu.europa.eeas.currencyexchange.common.UseCase;
@@ -17,15 +18,7 @@ public class CreateExchangeRateUseCase implements CreateExchangeRatePort {
     }
 
     @Override
-    public void createExchangeRate(CurrencyExchange currencyExchange) {
-        // business validations are made in the application domain
-        validateExchangeRateDoesNotExist(currencyExchange);
-        this.newExchangeRatePort.createExchangeRate(currencyExchange);
-    }
-
-    private void validateExchangeRateDoesNotExist(CurrencyExchange currencyExchange) {
-        if (!newExchangeRatePort.checkExchangeRateDoesNotExist(currencyExchange)) {
-            throw new ExchangeRatePairAlreadyExistsException(currencyExchange);
-        }
+    public OperationResult createExchangeRate(CurrencyExchange currencyExchange) {
+        return this.newExchangeRatePort.createExchangeRate(currencyExchange);
     }
 }

@@ -1,9 +1,9 @@
 package eu.europa.eeas.currencyexchange.application.ports.out;
 
-import eu.europa.eeas.currencyexchange.application.domain.model.CurrencyExchange;
+import eu.europa.eeas.currencyexchange.application.domain.model.OperationResult;
 
 import java.util.Currency;
 
 public interface RemoveExchangeRatePort {
-    void deleteExchangeRate(Currency source, Currency target);
+    OperationResult deleteExchangeRate(Currency source, Currency target);
 }

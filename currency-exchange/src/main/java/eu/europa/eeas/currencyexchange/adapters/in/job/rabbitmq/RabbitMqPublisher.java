@@ -2,15 +2,15 @@ package eu.europa.eeas.currencyexchange.adapters.in.job.rabbitmq;
 
 import com.rabbitmq.client.*;
 import eu.europa.eeas.currencyexchange.adapters.in.job.EventPublisher;
-import eu.europa.eeas.currencyexchange.common.MessageBrokerAdapter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
-@MessageBrokerAdapter
+@Component
 public class RabbitMqPublisher implements EventPublisher {
 
     private Connection connection;
