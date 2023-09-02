@@ -65,9 +65,11 @@ A `DELETE`, for example, can returns `200` (OK) or `204` (No Content) when an ac
 
 ### Idempotency key
 
-In order to make operations idempotent, it is required that the request or message has an **idempotency key**. This is a unique identifier, that the producer of the message is responsible for creating. It is usually a `UUID`, but it is a good idea to prefix the UUID with some human understandable information.
+In order to make operations idempotent, it is required that the request or message has an **idempotency key**. This is a unique identifier, that the producer of the message is responsible for creating.
 
-For example, an idempotency key for the exchange rate resource can be: `EXCH-RONEUR-3e4087be-9f16-4f76-a59a-9cc191bb3188`.
+The consumer of the message checks if it has processed another message with the same idempotency key. If yes, then it doesn't need to process the message again.
+
+The idempotency key is usually a `UUID`, but it is a good idea to prefix the UUID with some human understandable information. For example, an idempotency key for the exchange rate resource can be: `EXCH-RONEUR-3e4087be-9f16-4f76-a59a-9cc191bb3188`.
 
 - `EXCH` - type of resource
 - `RONEUR` - some basic information about the resource that can make it easier to identify it
