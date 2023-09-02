@@ -1,4 +1,4 @@
-package eu.europa.eeas.currencyexchange.adapters.in.job;
+package eu.europa.eeas.currencyexchange.adapters.out.job;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

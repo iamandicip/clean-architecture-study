@@ -1,7 +1,7 @@
-package eu.europa.eeas.currencyexchange.adapters.in.job;
+package eu.europa.eeas.currencyexchange.adapters.out.job;
 
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.OutboxJpaEntity;
-import eu.europa.eeas.currencyexchange.adapters.out.persistence.repository.OutboxJpaRepository;
+import eu.europa.eeas.currencyexchange.adapters.out.persistence.repository.OutboxPersistenceAdapter;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,11 +15,11 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class EventPublisherJob {
 
-    private final OutboxJpaRepository repository;
+    private final OutboxPersistenceAdapter outboxPersistenceAdapter;
     private final EventPublisher eventPublisher;
 
-    public EventPublisherJob(OutboxJpaRepository repository, EventPublisher eventPublisher) {
-        this.repository = repository;
+    public EventPublisherJob(OutboxPersistenceAdapter outboxPersistenceAdapter, EventPublisher eventPublisher) {
+        this.outboxPersistenceAdapter = outboxPersistenceAdapter;
         this.eventPublisher = eventPublisher;
     }
 
@@ -28,10 +28,10 @@ public class EventPublisherJob {
     public void pollOutbox() {
         log.debug("Starting publishing scheduled job");
         try {
-            List<OutboxJpaEntity> events = repository.findAllOrderByCreatedAt();
-            for (OutboxJpaEntity event : events) {
+            List<OutboxJpaEntity> events = outboxPersistenceAdapter.listAllEvents();
+            for (var event : events) {
                 publishEvent(event);
-                repository.delete(event);
+                outboxPersistenceAdapter.deleteEvent(event);
             }
         } catch (Exception e) {
             log.error("Unexpected error publishing events", e);

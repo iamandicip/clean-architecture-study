@@ -24,11 +24,11 @@ public class CreateExchangeRateController {
     public ResponseEntity<Void> updateExchangeRate(@PathVariable String from,
                                                    @PathVariable String to,
                                                    @PathVariable Float rate) {
-        Currency fromCurrency = Currency.getInstance(from.toUpperCase());
-        Currency toCurrency = Currency.getInstance(to.toUpperCase());
-        CurrencyExchange currencyExchange = new CurrencyExchange(fromCurrency, toCurrency, rate);
-        OperationResult result = createExchangeRatePort.createExchangeRate(currencyExchange);
-        HttpStatus status = result.equals(OperationResult.UPDATE) ? HttpStatus.OK : HttpStatus.CREATED;
+        var fromCurrency = Currency.getInstance(from.toUpperCase());
+        var toCurrency = Currency.getInstance(to.toUpperCase());
+        var currencyExchange = new CurrencyExchange(fromCurrency, toCurrency, rate);
+        var result = createExchangeRatePort.createExchangeRate(currencyExchange);
+        var status = result.equals(OperationResult.UPDATE) ? HttpStatus.OK : HttpStatus.CREATED;
         return ResponseEntity.status(status).build();
     }
 }

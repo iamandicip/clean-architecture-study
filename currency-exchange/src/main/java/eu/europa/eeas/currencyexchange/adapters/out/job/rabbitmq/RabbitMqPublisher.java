@@ -1,7 +1,7 @@
-package eu.europa.eeas.currencyexchange.adapters.in.job.rabbitmq;
+package eu.europa.eeas.currencyexchange.adapters.out.job.rabbitmq;
 
 import com.rabbitmq.client.*;
-import eu.europa.eeas.currencyexchange.adapters.in.job.EventPublisher;
+import eu.europa.eeas.currencyexchange.adapters.out.job.EventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +49,6 @@ public class RabbitMqPublisher implements EventPublisher {
          */
         Connection conn = this.getConnection();
         if (this.channel == null || !this.channel.isOpen()) {
-
             /*
              * Channels are also meant to be long-lived but since many recoverable protocol errors will result in
              * channel closure, channel lifespan could be shorter than that of its connection.

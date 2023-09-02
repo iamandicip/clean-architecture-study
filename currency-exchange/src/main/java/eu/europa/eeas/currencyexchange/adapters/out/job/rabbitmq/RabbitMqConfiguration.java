@@ -1,4 +1,4 @@
-package eu.europa.eeas.currencyexchange.adapters.in.job.rabbitmq;
+package eu.europa.eeas.currencyexchange.adapters.out.job.rabbitmq;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

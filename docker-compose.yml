@@ -11,14 +11,14 @@ services:
   currency-exchange-db:
     image: postgres
     env_file:
-      - .env
+      - postgres-env
     ports:
       - 5432:5432
 
   rabbitmq:
     image: rabbitmq:3-management
     env_file:
-      - .env
+      - rabbitmq-env
     ports:
       - 5672:5672
       - 15672:15672

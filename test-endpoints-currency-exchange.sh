@@ -1,26 +1,42 @@
 #!/bin/bash
-BASE_URL="http://localhost:8081/exchange-rate"
+BASE_URL='http://localhost:8081/exchange-rate'
 
-test_endpoint_put() {
-	curl -X PUT $BASE_URL/$1
+# function to test the header of the request against expected value
+test_endpoint_get_status() {
+	echo 'command        :' $1 $2
+	echo 'expected result:' $3
+  result="$(curl --request $1 --head --silent --location $BASE_URL/$2 | awk '/^HTTP/{print $2}')"
+	echo 'actual result  :' $result
+	test_result $3 $result
+	echo '-----------------------------------'
 }
 
-test_endpoint_post() {
-	curl -X POST $BASE_URL/$1
+# function to test the body of the request against expected value
+test_endpoint_get_body() {
+	echo 'command        :' $1 $2
+	echo 'expected result:' $3
+  result="$(curl --request $1 --silent --location $BASE_URL/$2)"
+	echo 'actual result  :' $result
+	test_result $3 $result
+	echo '-----------------------------------'
 }
 
-test_endpoint_get() {
-	curl -X GET $BASE_URL/$1
+# function to test if 2 values are equal
+test_result() {
+	if [[ $1 == $2 ]]; then
+  echo 'test outcome   : OK'
+	else
+	echo 'test outcome   : NOK'
+	fi
 }
 
-test_endpoint_delete() {
-	curl -X DELETE $BASE_URL/$1
-}
-
-test_endpoint_put "RON/EUR/4.92" # 201
-test_endpoint_put "RON/EUR/4.92" # 200
-test_endpoint_delete "RON/EUR"   # 204
-test_endpoint_delete "RON/EUR"   # 404
-test_endpoint_post "RON/EUR/4.9" # 201
-test_endpoint_post "RON/EUR/4.9" # 200
-test_endpoint_get "RON/EUR"      # 200
+# test suite
+test_endpoint_get_status 'GET' 'RON/EUR' '404'
+test_endpoint_get_status 'PUT' 'RON/EUR/4.92' '201'
+test_endpoint_get_status 'PUT' 'RON/EUR/4.95' '200'
+test_endpoint_get_status 'DELETE' 'RON/EUR' '204'
+test_endpoint_get_status 'DELETE' 'RON/EUR' '404'
+test_endpoint_get_status 'POST' 'RON/EUR/4.92' '201'
+test_endpoint_get_status 'POST' 'RON/EUR/4.96' '200'
+test_endpoint_get_body   'GET' 'RON/EUR' '{"from":"RON","to":"EUR","rate":4.96}'
+test_endpoint_get_status 'DELETE' 'RON/EUR' '204'

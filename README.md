@@ -31,7 +31,46 @@ However, it does come with the drawback of potentially stale data for a short du
 
 This approach also implements the [Outbox Pattern](https://dzone.com/articles/implementing-the-outbox-pattern), which prevents the loss of events in case of communication problems with the queue.
 
-## Service 1 - Currency exchange
+## Idempotency
+
+### Idempotent operations
+
+We should always pay attention to the idempotency of our operations. An **idempotent operation** can be described as an operation that can be called multiple times without changing the result. Idempotence ensures that the same request leads to the same system state, and no action is unintentionally executed more than once.
+
+For example, in REST services, `GET`, `UPDATE` and `DELETE` are naturally idempotent. No matter how many times we call them, the end result on the data is the same.
+
+`POST` is not by default an idempotent operation, but in many situations it's a good idea to handle it like an idempotent operation in our systems.
+For example, the first call to POST can create the resource, while subsequent calls can update it, just like `UPDATE`.
+Ultimately, this decision should be informed by the business requirements.
+
+Operation idempotence is especially important in event driven systems, where it can happen that events are sent or consumed multiple times.
+
+It is important to note that several calls to an idempotent operation do not necessarily result in the same HTTP response.
+
+`PUT`, for example, will return `201` (Created) if a resource is created, or `200` (OK) or `203` (No Content) if a resource was updated.
+
+A `DELETE`, for example, can returns `200` (OK) or `204` (No Content) when an actual deletion takes place. Any subsequent calls will return `404` (Not found).
+
+### Idempotency key
+
+In order to make operations idempotent, it is required that the request or message has an **idempotency key**. This is a unique identifier, that the producer of the message is responsible for creating. It is usually a `UUID`, but it is a good idea to prefix the UUID with some human understandable information.
+
+For example, an idempotency key for the exchange rate resource can be: `EXCH-RONEUR-3e4087be-9f16-4f76-a59a-9cc191bb3188`.
+
+- `EXCH` - type of resource
+- `RONEUR` - some basic information about the resource that can make it easier to identify it
+- `3e4087be-9f16-4f76-a59a-9cc191bb3188` - the UUID.
+
+In a an environment with a lot of message types exchanged between systems, a simple naming convention like this can make debugging much easier.
+
+### References
+
+- [What Is an Idempotent Operation?](https://www.baeldung.com/cs/idempotent-operations)
+- [Idempotency in RESTful APIs and Event-Driven Systems](https://levelup.gitconnected.com/idempotency-in-restful-apis-and-event-driven-systems-43a26f91ea8d)
+- [Pattern: Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html)
+
+
+## Currency exchange service
 
 Exposes endpoints for CRUD operations on exchange rates.
 
@@ -44,9 +83,10 @@ docker-compose up
 
 ### Test
 
-Execute the requests from postman folder collection, or:
+Run the shell script `test-endpoint-currency-exchange.sh`, or run the requests in the `postman` folder.
 
-- Create: `POST` at [localhost:8081/exchange-rate/RON/EUR/4.91](localhost:8081/exchange-rate/RON/EUR/4.9)
-- Read: `GET` at [localhost:8081/exchange-rate/RON/EUR](localhost:8081/exchange-rate/RON/EUR)
-- Update: `PUT` at [localhost:8081/exchange-rate/RON/EUR/4.92](localhost:8081/exchange-rate/EUR/USD/1.13)
-- Delete: `DELETE` at [localhost:8081/exchange-rate/RON/EUR](localhost:8081/exchange-rate/RON/EUR)
+### Shutdown
+
+```shell
+docker-compose down --remove-orphans
+``` 

@@ -23,8 +23,8 @@ public class GetExchangeRateController {
 
     @GetMapping("/exchange-rate/{from}/{to}")
     public ResponseEntity<CurrencyExchangeDto> getExchangeRate(@PathVariable String from, @PathVariable String to) {
-        Currency currencyFrom = Currency.getInstance(from.toUpperCase());
-        Currency currencyTo = Currency.getInstance(to.toUpperCase());
+        var currencyFrom = Currency.getInstance(from.toUpperCase());
+        var currencyTo = Currency.getInstance(to.toUpperCase());
         Optional<CurrencyExchangeDto> dto = getExchangeRatePort.getExchangeRate(currencyFrom, currencyTo)
                 .map(CurrencyExchangeDtoConverter::modelToDto);
         return ResponseEntity.of(dto);

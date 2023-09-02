@@ -21,10 +21,10 @@ public class DeleteExchangeRateController {
     @DeleteMapping("/exchange-rate/{from}/{to}")
     public ResponseEntity<Void> updateExchangeRate(@PathVariable String from,
                                                    @PathVariable String to) {
-        Currency fromCurrency = Currency.getInstance(from.toUpperCase());
-        Currency toCurrency = Currency.getInstance(to.toUpperCase());
-        OperationResult result = deleteExchangeRatePort.delete(fromCurrency, toCurrency);
-        HttpStatus status = result.equals(OperationResult.DELETE) ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND;
+        var fromCurrency = Currency.getInstance(from.toUpperCase());
+        var toCurrency = Currency.getInstance(to.toUpperCase());
+        var result = deleteExchangeRatePort.delete(fromCurrency, toCurrency);
+        var status = result.equals(OperationResult.DELETE) ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND;
         return ResponseEntity.status(status).build();
     }
 }

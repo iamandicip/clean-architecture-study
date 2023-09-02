@@ -1,24 +1,18 @@
 package eu.europa.eeas.currencyexchange.adapters.out.persistence.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.CurrencyExchangeJpaEntity;
 import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.EventType;
-import eu.europa.eeas.currencyexchange.adapters.out.persistence.entity.OutboxJpaEntity;
 import eu.europa.eeas.currencyexchange.application.domain.model.CurrencyExchange;
 import eu.europa.eeas.currencyexchange.application.domain.model.OperationResult;
 import eu.europa.eeas.currencyexchange.application.ports.out.NewExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.PersistExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.RemoveExchangeRatePort;
 import eu.europa.eeas.currencyexchange.application.ports.out.RetrieveExchangeRatePort;
-import eu.europa.eeas.currencyexchange.common.ApplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Currency;
-import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class ExchangeRatePersistenceAdapter implements
@@ -28,20 +22,21 @@ public class ExchangeRatePersistenceAdapter implements
         RemoveExchangeRatePort {
 
     private final CurrencyExchangeJpaRepository repository;
-    private final OutboxJpaRepository outboxRepository;
-    private final ObjectMapper objectMapper;
+
+    private final OutboxPersistenceAdapter outboxPersistenceAdapter;
 
     @Autowired
     public ExchangeRatePersistenceAdapter(CurrencyExchangeJpaRepository repository,
-                                          OutboxJpaRepository outboxRepository, ObjectMapper objectMapper) {
+                                          OutboxPersistenceAdapter outboxPersistenceAdapter) {
         this.repository = repository;
-        this.outboxRepository = outboxRepository;
-        this.objectMapper = objectMapper;
+        this.outboxPersistenceAdapter = outboxPersistenceAdapter;
     }
 
     @Override
     public OperationResult createExchangeRate(CurrencyExchange currencyExchange) {
-        // design decision: make the create operation idempotent, too
+        // this decision is more a requirement than a technical decision
+        // the question is: what should the service do if object already exist?
+        // in this case, we decide to allow repeated calls and make the create operation idempotent
         return createOrUpdateExchangeRate(currencyExchange);
     }
 
@@ -52,7 +47,7 @@ public class ExchangeRatePersistenceAdapter implements
 
     @Override
     public OperationResult updateExchangeRate(CurrencyExchange currencyExchange) {
-        // update should be an idempotent operation, that creates the resource if it doesn't already exist
+        // update should be an idempotent operation; it creates the resource if it doesn't already exist
         return createOrUpdateExchangeRate(currencyExchange);
     }
 
@@ -70,12 +65,13 @@ public class ExchangeRatePersistenceAdapter implements
             eventType = EventType.CREATE;
         } else {
             entity = entityOpt.get();
+            entity.setRate(currencyExchange.getRate());
             result = OperationResult.UPDATE;
             eventType = EventType.UPDATE;
         }
 
         repository.save(entity);
-        persistEventToOutbox(entity, eventType);
+        outboxPersistenceAdapter.createEvent(entity, eventType);
 
         return result;
     }
@@ -88,37 +84,14 @@ public class ExchangeRatePersistenceAdapter implements
             return OperationResult.NOOP;
         }
 
-        CurrencyExchangeJpaEntity currencyExchangeEntity = entityOpt.get();
+        var currencyExchangeEntity = entityOpt.get();
         repository.delete(currencyExchangeEntity);
-        persistEventToOutbox(currencyExchangeEntity, EventType.DELETE);
+        outboxPersistenceAdapter.createEvent(currencyExchangeEntity, EventType.DELETE);
 
         return OperationResult.DELETE;
     }
 
     private Optional<CurrencyExchangeJpaEntity> findCurrencyExchangeJpaEntity(Currency from, Currency to) {
         return repository.findByCodeFromAndCodeTo(from.getCurrencyCode(), to.getCurrencyCode());
-    }
-
-    private void persistEventToOutbox(CurrencyExchangeJpaEntity entity, EventType eventType) {
-        try {
-            CurrencyExchangeOutbox model = CurrencyExchangeOutbox.builder()
-                    .source(entity.getCodeFrom())
-                    .target(entity.getCodeTo())
-                    .rate(entity.getRate())
-                    .operationType(eventType.name())
-                    // we need this id on the consumer side, in order to ensure operation idempotency
-                    .idempotencyId(UUID.randomUUID().toString())
-                    .build();
-            String json = objectMapper.writeValueAsString(model);
-            OutboxJpaEntity event = new OutboxJpaEntity();
-            event.setEventType(eventType);
-            event.setAggregateId(entity.getId());
-            event.setAggregateType("CurrencyExchange");
-            event.setPayload(json);
-            event.setCreatedAt(new Date());
-            outboxRepository.save(event);
-        } catch (JsonProcessingException e) {
-            throw new ApplicationException("There was an unexpected error processing the changes", e);
-        }
     }
 }
