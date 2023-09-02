@@ -21,6 +21,8 @@ The main benefit of a clean architecture is that the domain business logic has n
 
 ## Event sourcing architecture
 
+### Publish events via message broker
+
 This type of architecture allows sharing data asynchronously between applications. This is done via events published on a message broker like RabbitMq. It is a publish-subscribe mechanism, where we have a producer and one or many consumers of the events.
 
 Each time there is an update on the service that owns the data, an event is published via the message broker. All the application that listen to the topic or exchange for that event type will receive the message and update their copy of the data.
@@ -29,7 +31,17 @@ This kind of approach allows loose coupling between applications or services, wh
 
 However, it does come with the drawback of potentially stale data for a short duration of time. That is why this approach should be used with data that doesn't change very fast.
 
+### The outbox pattern
+
 This approach also implements the [Outbox Pattern](https://dzone.com/articles/implementing-the-outbox-pattern), which prevents the loss of events in case of communication problems with the queue.
+
+The problem that this pattern is trying to solve is this: what happens if, after persisting data in your system, for whatever reason, the publishing of the event to the message broker fails? The answer is that all the systems that neeed this updated data will not receive it.
+
+In order to prevent this, the events are instead stored in a database table called an outbox. The update on the resource and the creation of the event in the outbox take place in the same transaction.
+
+Then, an asynchronous job reads the event from the outbox, publishes it in to the broker. If the publication is successful, then deletes it from the outbox.
+
+![Outbox pattern](./img/outbox-pattern.webp)
 
 ## Idempotency
 
